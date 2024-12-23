@@ -14,13 +14,23 @@
     "@hapi/hapi": "^21.3.12",
     "@hapi/joi": "^17.1.1",
     "backend": "file:",
-    "dotenv": "^16.4.7"
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/hapi__boom": "^7.4.1",
     "@types/hapi__hapi": "^20.0.13",
     "@types/hapi__joi": "^17.1.15",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "@types/winston": "^2.4.4",
     "typescript": "^5.7.2"
   }
 }
