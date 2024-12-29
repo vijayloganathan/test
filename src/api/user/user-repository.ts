@@ -1,7 +1,6 @@
 import { executeQuery, getClient } from "../../helper/db";
 import { PoolClient } from "pg";
 import path from "path";
-
 import { encrypt } from "../../helper/encrypt";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -10,24 +9,145 @@ import {
   generateTokenWithExpire,
   generateTokenWithoutExpire,
 } from "../../helper/token";
-import { selectUserByUsername } from "./query";
+import {
+  checkQuery,
+  getCustomerCount,
+  insertUserQuery,
+  insertUserDomainQuery,
+  insertUserCommunicationQuery,
+  updateHistoryQuery
+} from "./query";
 import { CurrentTime } from "../../helper/common";
 
 export class UserRepository {
-  public async userLoginV1(user_data: any, domain_code?: any): Promise<any> {
-    const params = [user_data.username];
-    const users = await executeQuery(selectUserByUsername, params);
+  public async userSignUpV1(userData: any, domain_code?: any): Promise<any> {
+    console.log('userData', userData)
 
-    if (users.length > 0) {
-      const user = users[0];
-      const validPassword = await bcrypt.compare(
-        user_data.password,
-        user.refCustHashedPassword
+    const hashedPassword = await bcrypt.hash(userData.temp_password, 10);
+    console.log("line ---- 25", hashedPassword);
+
+    const check = [userData.temp_username];
+    console.log(check);
+    // const userCheck = await executeQuery(checkQuery, [userData.temp_username]);
+    const userCheck = await executeQuery(checkQuery, check)
+    console.log('userCheck', userCheck);
+    const userFind = userCheck[0];
+    console.log('userFind', userFind);
+
+    if (userFind) {
+
+      console.log('line ----- 38',)
+      return encrypt(
+        {
+          message: "Already exit",
+          success: true,
+        },
+        false
       );
+    } else {
+      // Generate newCustomerId in the format KC001, KC002, etc.
+      const userCountResult = await executeQuery(getCustomerCount);
+      console.log('userCountResult', userCountResult);
+      const userCount = parseInt(userCountResult[0].count, 10); // Extract and convert count to a number
+      console.log('userCount', userCount);
 
-      if (validPassword) {
-        const history = [2, CurrentTime(), user.refStId, "User", "Login"];
+      let newCustomerId;
+      if (userCount >= 0) {
+        newCustomerId = `KC${(userCount + 1).toString().padStart(3, '0')}`; // Generate the ID in the format KCxxx
+      }
+      let userType = 1;
+      console.log('newCustomerId', newCustomerId);
+
+      const params = [
+        userData.temp_fname, // refStFName
+        userData.temp_lname, // refStLName
+        newCustomerId,
+        (userType = 1),
+      ];
+      console.log(params);
+
+      const userResult = await executeQuery(insertUserQuery, params);
+      const newUser = userResult[0];
+      console.log('newUser', newUser)
+
+      const domainParams = [
+        newUser.refUserId, // refUserId from users table
+        newUser.refUserCustId, // refCustId from users table
+        userData.temp_username, // refcust Username
+        userData.temp_password, // refCustPassword
+        hashedPassword, // refCustHashedPassword
+        userData.temp_email,
+      ];
+
+      console.log(domainParams);
+
+      const domainResult = await executeQuery(insertUserDomainQuery, domainParams);
+
+      const communicationParams = [
+        newUser.refUserId, // refUserId from users table
+        userData.temp_phone,
+        userData.temp_email,
+      ];
+
+      console.log(communicationParams);
+
+      const communicationResult = await executeQuery(insertUserCommunicationQuery, communicationParams);
+
+      console.log(' line --------- 96', )
+      if (
+        userResult.length > 0 &&
+        domainResult.length > 0 &&
+        communicationResult.length > 0
+      ) {
+        const history = [
+          1,
+          CurrentTime(),
+          newUser.refUserId,
+
+          "User SignUp",
+        ];
+        
+        console.log('history', history)
+        const updateHistory = await executeQuery(updateHistoryQuery, history);
+
+        console.log('line ----- 113', )
+        if (updateHistory && updateHistory.length > 0) {
+          const tokenData = {
+            id: newUser.refUserId, // refUserId from users table
+            email: userData.temp_su_email,
+            custId: newUser.refSCustId,
+            status: newUser.refSUserStatus,
+          };
+          return encrypt(
+            {
+              success: true,
+              message: "User signup successful",
+              user: newUser,
+              token: generateTokenWithExpire(tokenData, true),
+            },
+            false
+          );
+        } else {
+          return encrypt(
+            {
+              success: false,
+              message: "Failed to update history",
+            },
+            false
+          );
+        }
+      } else {
+        return encrypt(
+          {
+            success: false,
+            message: "Signup failed",
+          },
+          false
+        );
       }
     }
   }
+
+
 }
+

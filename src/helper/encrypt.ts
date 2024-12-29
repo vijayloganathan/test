@@ -9,8 +9,10 @@ function encrypt(
   text: string | object,
   encryptStatus?: boolean
 ): string[] | { text: string | object } {
+
   if (!encryptStatus) {
-    return { text };
+    console.log('encryptStatus', encryptStatus)
+    return { text }; // Return the original input if encryption is not enabled
   }
 
   const algorithm = "aes-256-cbc";
@@ -27,6 +29,7 @@ function encrypt(
   let encrypted = cipher.update(textToEncrypt, "utf-8", "hex");
   encrypted += cipher.final("hex");
 
+  // Return values as an array: [iv, encryptedData]
   return [iv.toString("hex"), encrypted];
 }
 
