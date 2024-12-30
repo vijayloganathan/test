@@ -1,0 +1,52 @@
+CREATE TABLE
+  public."Users" (
+    "refUserId" serial NOT NULL Primary Key,
+    "refUserCustId" text NOT NULL DEFAULT now(),
+    "refRoleId" text NULL,
+    "refUserFname" text NULL,
+    "refUserLname" text NULL,
+    "LoginTypeID" text NULL,
+    "refDummy1" text NULL,
+    "refDummy2" text NULL,
+    "refDummy3" text NULL,
+    "refDummy4" text NULL,
+    "createdAt" text NULL,
+    "createdBy" text NULL,
+    "updatedAt" text NULL,
+    "updatedBy" text NULL
+  );
+
+  CREATE TABLE
+  public."refCommunication" (
+    "refComId" serial NOT NULL Primary Key,
+    "refUserId" integer NOT NULL,
+    "refMobileno" text NULL,
+    "refEmail" text NULL,
+    "refDummy1" text NULL,
+    "refDummy2" text NULL,
+    "refDummy3" text NULL,
+    "refDummy4" text NULL,
+    "createdAt" text NULL,
+    "createdBy" text NULL,
+    "updatedAt" text NULL,
+    "updatedBy" text NULL
+  );
+
+  CREATE TABLE
+  public."refUsersDomain" (
+    "refUDomId" serial NOT NULL Primary Key,
+    "refUserId" integer NULL,
+    "refCustId" text NULL,
+    "refCustMobileNum" text NULL,
+    "refCustPassword" text NULL,
+    "refCustHashedPassword" text NULL,
+    "refUserCreatedAt" text NULL,
+    "refUserCreatedBy" text NULL,
+    "refUserUpdatedAt" text NULL,
+    "refUserUpdatedBy" text NULL,
+    "refUserDeletedAt" text NULL,
+    "refUserDeletedBy" text NULL,
+    "refUserName" text NULL,
+    "refDummy1" text NULL,
+    "refDummy2" text NULL
+  );
