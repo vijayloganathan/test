@@ -21,7 +21,7 @@ export class UserController {
     try {
       let entity;
 
-      console.log('line ---- 24',)
+      console.log("line ---- 24");
 
       entity = await this.resolver.userSignUpV1(request.payload);
 
@@ -38,7 +38,29 @@ export class UserController {
         })
         .code(500);
     }
-  }
+  };
+  public fetchData = async (
+    request: Hapi.Request,
+    response: Hapi.ResponseToolkit
+  ): Promise<any> => {
+    try {
+      let entity;
+      entity = await this.resolver.fetchDataV1(request.payload);
+
+      if (entity.success) {
+        return response.response(entity).code(201);
+      }
+      return response.response(entity).code(200);
+    } catch (error) {
+      logger.error("Error in Fetching Data:", error);
+      return response
+        .response({
+          success: false,
+          message: "An unknown error occurred",
+        })
+        .code(500);
+    }
+  };
 }
 
 export class VendorProfile {
@@ -62,7 +84,6 @@ export class VendorProfile {
         return response.response(entity).code(201); // Created
       }
       return response.response(entity).code(200); // Bad Request if failed
-
     } catch (error) {
       logger.error("Error in vendor profile", error);
       return response
@@ -85,7 +106,7 @@ export class VendorProfile {
     try {
       let entity;
 
-      console.log('line ---- 24',)
+      console.log("line ---- 24");
 
       entity = await this.resolver.VendorSLinksV1(request.payload);
 
@@ -93,7 +114,6 @@ export class VendorProfile {
         return response.response(entity).code(201); // Created
       }
       return response.response(entity).code(200); // Bad Request if failed
-
     } catch (error) {
       logger.error("Error in store vendor social links:", error);
       return response
@@ -116,7 +136,7 @@ export class VendorProfile {
     try {
       let entity;
 
-      console.log('line ---- 24',)
+      console.log("line ---- 24");
 
       entity = await this.resolver.VendorBankDetailsV1(request.payload);
 
@@ -124,7 +144,6 @@ export class VendorProfile {
         return response.response(entity).code(201); // Created
       }
       return response.response(entity).code(200); // Bad Request if failed
-
     } catch (error) {
       logger.error("Error in store vendor social links:", error);
       return response

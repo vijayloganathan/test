@@ -7,7 +7,6 @@ import { decodeToken, validateToken } from "../helper/token";
 import { UserController } from "./controller";
 import { VendorProfile } from "./controller";
 
-
 export class UserRouters implements IRoute {
   public async register(server: any): Promise<any> {
     return new Promise((resolve) => {
@@ -20,6 +19,15 @@ export class UserRouters implements IRoute {
             handler: controller.userSignUp,
             description: "Signup Checking Validation",
             tags: ["api", "users"],
+            auth: false,
+          },
+        },
+        {
+          method: "GET",
+          path: "/api/v1/users/fetchData",
+          config: {
+            handler: controller.fetchData,
+            description: "User Fetch Data Passing",
             auth: false,
           },
         },

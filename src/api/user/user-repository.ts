@@ -15,28 +15,21 @@ import {
   insertUserQuery,
   insertUserDomainQuery,
   insertUserCommunicationQuery,
-  updateHistoryQuery
+  updateHistoryQuery,
+  fetchData,
 } from "./query";
 import { CurrentTime } from "../../helper/common";
 
 export class UserRepository {
   public async userSignUpV1(userData: any, domain_code?: any): Promise<any> {
-    console.log('userData', userData)
-
     const hashedPassword = await bcrypt.hash(userData.temp_password, 10);
-    console.log("line ---- 25", hashedPassword);
 
     const check = [userData.temp_username];
-    console.log(check);
     // const userCheck = await executeQuery(checkQuery, [userData.temp_username]);
-    const userCheck = await executeQuery(checkQuery, check)
-    console.log('userCheck', userCheck);
+    const userCheck = await executeQuery(checkQuery, check);
     const userFind = userCheck[0];
-    console.log('userFind', userFind);
 
     if (userFind) {
-
-      console.log('line ----- 38',)
       return encrypt(
         {
           message: "Already exit",
@@ -47,16 +40,13 @@ export class UserRepository {
     } else {
       // Generate newCustomerId in the format KC001, KC002, etc.
       const userCountResult = await executeQuery(getCustomerCount);
-      console.log('userCountResult', userCountResult);
       const userCount = parseInt(userCountResult[0].count, 10); // Extract and convert count to a number
-      console.log('userCount', userCount);
 
       let newCustomerId;
       if (userCount >= 0) {
-        newCustomerId = `KC${(userCount + 1).toString().padStart(3, '0')}`; // Generate the ID in the format KCxxx
+        newCustomerId = `KC${(userCount + 1).toString().padStart(3, "0")}`; // Generate the ID in the format KCxxx
       }
       let userType = 1;
-      console.log('newCustomerId', newCustomerId);
 
       const params = [
         userData.temp_fname, // refStFName
@@ -64,11 +54,9 @@ export class UserRepository {
         newCustomerId,
         (userType = 1),
       ];
-      console.log(params);
 
       const userResult = await executeQuery(insertUserQuery, params);
       const newUser = userResult[0];
-      console.log('newUser', newUser)
 
       const domainParams = [
         newUser.refUserId, // refUserId from users table
@@ -79,9 +67,10 @@ export class UserRepository {
         userData.temp_email,
       ];
 
-      console.log(domainParams);
-
-      const domainResult = await executeQuery(insertUserDomainQuery, domainParams);
+      const domainResult = await executeQuery(
+        insertUserDomainQuery,
+        domainParams
+      );
 
       const communicationParams = [
         newUser.refUserId, // refUserId from users table
@@ -89,53 +78,54 @@ export class UserRepository {
         userData.temp_email,
       ];
 
-      console.log(communicationParams);
+      const communicationResult = await executeQuery(
+        insertUserCommunicationQuery,
+        communicationParams
+      );
 
-      const communicationResult = await executeQuery(insertUserCommunicationQuery, communicationParams);
-
-      console.log(' line --------- 96', )
       if (
         userResult.length > 0 &&
         domainResult.length > 0 &&
         communicationResult.length > 0
       ) {
-        const history = [
-          1,
-          CurrentTime(),
-          newUser.refUserId,
-
-          "User SignUp",
-        ];
-        
-        console.log('history', history)
-        const updateHistory = await executeQuery(updateHistoryQuery, history);
-
-        console.log('line ----- 113', )
-        if (updateHistory && updateHistory.length > 0) {
-          const tokenData = {
-            id: newUser.refUserId, // refUserId from users table
-            email: userData.temp_su_email,
-            custId: newUser.refSCustId,
-            status: newUser.refSUserStatus,
-          };
-          return encrypt(
-            {
-              success: true,
-              message: "User signup successful",
-              user: newUser,
-              token: generateTokenWithExpire(tokenData, true),
-            },
-            false
-          );
-        } else {
-          return encrypt(
-            {
-              success: false,
-              message: "Failed to update history",
-            },
-            false
-          );
-        }
+        return encrypt(
+          {
+            success: true,
+            message: "User signup successful",
+            user: newUser,
+            // token: generateTokenWithExpire(tokenData, true),
+          },
+          false
+        );
+        // const history = [1, CurrentTime(), newUser.refUserId, "User SignUp"];
+        // console.log("history", history);
+        // const updateHistory = await executeQuery(updateHistoryQuery, history);
+        // console.log("line ----- 113");
+        // if (updateHistory && updateHistory.length > 0) {
+        //   const tokenData = {
+        //     id: newUser.refUserId, // refUserId from users table
+        //     email: userData.temp_su_email,
+        //     custId: newUser.refSCustId,
+        //     status: newUser.refSUserStatus,
+        //   };
+        //   return encrypt(
+        //     {
+        //       success: true,
+        //       message: "User signup successful",
+        //       user: newUser,
+        //       token: generateTokenWithExpire(tokenData, true),
+        //     },
+        //     false
+        //   );
+        // } else {
+        //   return encrypt(
+        //     {
+        //       success: false,
+        //       message: "Failed to update history",
+        //     },
+        //     false
+        //   );
+        // }
       } else {
         return encrypt(
           {
@@ -147,7 +137,26 @@ export class UserRepository {
       }
     }
   }
-
-
+  public async fetchDataV1(userData: any, domain_code?: any): Promise<any> {
+    try {
+      const data = await executeQuery(fetchData, []);
+      return encrypt(
+        {
+          success: true,
+          message: "UserData is Passed Successfully",
+          data: data,
+        },
+        false
+      );
+    } catch (error) {
+      console.log(error);
+      return encrypt(
+        {
+          success: false,
+          message: "Error in Passing The User Data",
+        },
+        false
+      );
+    }
+  }
 }
-
